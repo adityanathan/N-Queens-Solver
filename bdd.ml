@@ -14,7 +14,7 @@ module BDD = struct
 		(* let bddFromExpr bexpr order = raise Not_implemented ;; *)
 		
 		(* let sat_count bdd = raise Not_implemented ;; *)
-		let all_sat bdd = raise Not_implemented ;;
+		(* let all_sat bdd = raise Not_implemented ;; *)
 		(* let any_sat bdd =  raise Not_implemented ;; *)
 		
 		let to_dot bdd = raise Not_implemented;;
@@ -132,6 +132,21 @@ module BDD = struct
 
 			in helper(root)
 
+		let all_sat ro : sat_assignment list =
+			let Table(root, table, var_map) = ro in
+			let high = high table in
+			let low = low table in
+
+			let rec helper u : sat_assignment list =
+				if u = 0 then []
+				else if u = 1 then [[]]
+				else 
+					let low_lst = helper(low(u)) in
+					let high_lst = helper(high(u)) in
+					let str = Hashtbl.find var_map u in
+					(low_lst)@(List.map (List.cons str) (high_lst))
+			
+				in helper root
 end;;
 (* let a = (Program.Constant true);;
 a;; *)
