@@ -1,18 +1,20 @@
 open Formula;;
 open Program;;
 
-(* open Format;;
-open Graph;; *)
+open Format;;
+open Graph;;
 (* #require "ocamlgraph";; *)
 (* open Ocamlgraph;; *)
 
-(* module Node = struct
+(* representation of a node -- must be hashable *)
+module Node = struct
 	type t = string
 	let compare = Stdlib.compare
 	let hash = Hashtbl.hash
 	let equal = (=)
 end
 
+(* representation of an edge -- must be comparable *)
 module Edge = struct
 	type t = string
 	let compare = Stdlib.compare
@@ -20,8 +22,13 @@ module Edge = struct
 	let default = ""
 end
 
+(* a functional/persistent graph *)
 module G = Graph.Persistent.Digraph.ConcreteBidirectionalLabeled(Node)(Edge)
 
+(* more modules available, e.g. graph traversal with depth-first-search *)
+(* module D = Graph.Traverse.Dfs(G) *)
+
+(* module for creating dot-files *)
 module Dot = Graph.Graphviz.Dot(struct
 	include G (* use the graph module from above *)
 	let edge_attributes (a, e, b) = [`Label e; `Color 4711]
@@ -31,7 +38,7 @@ module Dot = Graph.Graphviz.Dot(struct
 	let vertex_name v = string_of_int v
 	let default_vertex_attributes _ = []
  let graph_attributes _ = []
-end) *)
+end)
 
 
 module BDD = struct
@@ -182,7 +189,7 @@ module BDD = struct
 			
 				in helper root
 
-		(* let to_dot robdd =
+		let to_dot robdd =
 			let Table(root, table, var_map) = ro in
 			let high = high table in
 			let low = low table in
@@ -208,7 +215,7 @@ module BDD = struct
 					let () = construct u_high in ()
 			in
 			let file = open_out_bin "bdd.dot" in
-			let () = Dot.output_graph file g in () *)
+			let () = Dot.output_graph file g in ()
 
 end;;
 (* let a = (Program.Constant true);;
