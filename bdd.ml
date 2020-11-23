@@ -39,7 +39,7 @@ module BDD = struct
 		
 		(* define the type robdd in whatever way you want  *)
 		(* type robdd = bool list ;; *)
-		type robdd = Table of (int * (int, int * int * int) Hashtbl.t * (int, string) Hashtbl.t);;
+		type robdd = Table of (int * (int, int * int * int) Hashtbl.t * (int, string) Hashtbl.t * string list);;
 		        
 		exception Not_implemented
 		exception Malformed_Boolean_Expression
@@ -126,9 +126,8 @@ module BDD = struct
 					let () = Hashtbl.remove var_map h in
 					let u = mk (i, v0, v1) h table reverse_table node_map in
 					u
-					
 			in 
-			let root = build_helper 1 ordering in Table(root, table, node_map)
+			let root = build_helper 1 ordering in Table(root, table, node_map, ordering)
 
 		let int_pow a b : int = 
 			let p = float_of_int a in
@@ -137,7 +136,7 @@ module BDD = struct
 
 		(* Sat Count *)
 		let sat_count ro : int =
-			let Table(root,table,_) = ro in
+			let Table(root,table,_, _) = ro in
 			let var = var table in
 			let high = high table in
 			let low = low table in
@@ -152,7 +151,7 @@ module BDD = struct
 			in count(root)*(int_pow 2 (var(root)-1))
 
 		let any_sat ro : sat_assignment =
-			let Table(root, table, var_map) = ro in
+			let Table(root, table, var_map, _) = ro in
 			let high = high table in
 			let low = low table in
 
@@ -166,21 +165,48 @@ module BDD = struct
 
 			in helper(root)
 
+		let rec generate_combinations lst =
+			match lst with
+			| [] -> [[]]
+			| hd::tl -> 
+				let temp = (generate_combinations tl) in 
+					List.append temp (List.map (List.cons hd) temp)
+
+		let combinations visited_map ordering =
+			generate_combinations (List.filter (fun x -> not (Hashtbl.mem visited_map x)) ordering)
+
+		let remove_duplicates lst =
+			let map = Hashtbl.create 123456 in
+			let rec helper l =
+				match l with
+				| [] -> []
+				| hd::tl ->
+						if Hashtbl.mem map hd then helper tl
+						else
+							let () = Hashtbl.add map hd 1 in
+							let new_l = helper tl in
+							let () = Hashtbl.remove map hd in
+							hd::new_l
+			in helper lst 
+
 		let all_sat ro : sat_assignment list =
-			let Table(root, table, var_map) = ro in
+			let Table(root, table, var_map, ordering) = ro in
 			let high = high table in
 			let low = low table in
+			let visited_map = hash_create 123456 in
 
 			let rec helper u : sat_assignment list =
 				if u = 0 then []
-				else if u = 1 then [[]]
+				(* else if u = 1 then [[]] *)
+				else if u = 1 then combinations visited_map ordering
 				else 
+					let str = Hashtbl.find var_map u in
+					let () = Hashtbl.add visited_map str 1 in
 					let low_lst = helper(low(u)) in
 					let high_lst = helper(high(u)) in
-					let str = Hashtbl.find var_map u in
+					let () = Hashtbl.remove visited_map str in
 					(low_lst)@(List.map (List.cons str) (high_lst))
-			
-				in helper root
+				in remove_duplicates(helper root)
 
 		(* let to_dot robdd =
 			let Table(root, table, var_map) = ro in
@@ -211,47 +237,18 @@ module BDD = struct
 			let () = Dot.output_graph file g in () *)
 
 end;;
-(* let a = (Program.Constant true);;
-a;; *)
 
-(* let build_helper i =
-	let n = List.length bexpr in
-		if i > n then 
-			if evaluate bexpr var_map then 1 else 0
-		else
-			let h::t = ordering in
-				let () = Hashtbl.add var_map h 0
-				let v0 = build_helper (i+1)
-				let () = Hashtbl.remove var_map h
+(* let all_sat ro : sat_assignment list =
+	let Table(root, table, var_map) = ro in
+	let high = high table in
+	let low = low table in
 
-				let () = Hashtbl.add var_map h 1
-				let v1 = build_helper (i+1)
-				let () = Hashtbl.remove var_map h
-				mk (i, v0, v1) *)
-
-
-(* 
-let rec build_helper i rem_order bexpr var_map node_map table reverse_table: int =
-	match rem_order with
-		| [] -> if evaluate bexpr var_map then 1 else 0
-		| h::tail -> 
-			(* var_map on exit should be the same as on entry *)
-				(* Low arm *)
-				let () = Hashtbl.add var_map h false in
-				let v0 = build_helper (i+1) tail bexpr var_map node_map table reverse_table in
-				let () = Hashtbl.remove var_map h in
-				(* High arm *)
-				let () = Hashtbl.add var_map h true in 
-				let v1 = build_helper (i+1) tail bexpr var_map node_map table reverse_table in 
-				let () = Hashtbl.remove var_map h in
-				let u = mk table reverse_table (i, v0, v1) in
-				(* Add mapping from u to var_name string *)
-				let () = Hashtbl.add node_map u h in
-				u *)
-
-(* let rec count u =
-			if u = 0 then 0
-			else if u = 1 then 1
-			else 
-				count(low(u))*(int_pow 2 ((var(low(u))) - (var u) - 1)) + 
-				count(high(u))*(int_pow 2 ((var(high(u))) - (var u) - 1)) *)
+	let rec helper u : sat_assignment list =
+		if u = 0 then []
+		else if u = 1 then [[]]
+		else 
+			let low_lst = helper(low(u)) in
+			let high_lst = helper(high(u)) in
+			let str = Hashtbl.find var_map u in
+			(low_lst)@(List.map (List.cons str) (high_lst))
+		in helper root *)

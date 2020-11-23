@@ -5,7 +5,7 @@ module BDD : sig
 		(* define the type robdd as per your code. This type 
 		is used as ROBDD in all of the functions *)
 		(* type robdd = bool list ;; *)
-		type robdd = Table of (int * (int, int * int * int) Hashtbl.t * (int, string) Hashtbl.t);;
+		type robdd = Table of (int * (int, int * int * int) Hashtbl.t * (int, string) Hashtbl.t * string list);;
 		
 		exception Not_implemented
 		
