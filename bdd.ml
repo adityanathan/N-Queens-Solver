@@ -197,7 +197,6 @@ module BDD = struct
 
 			let rec helper u : sat_assignment list =
 				if u = 0 then []
-				(* else if u = 1 then [[]] *)
 				else if u = 1 then combinations visited_map ordering
 				else 
 					let str = Hashtbl.find var_map u in
@@ -235,20 +234,4 @@ module BDD = struct
 			in
 			let file = open_out_bin "bdd.dot" in
 			let () = Dot.output_graph file g in () *)
-
 end;;
-
-(* let all_sat ro : sat_assignment list =
-	let Table(root, table, var_map) = ro in
-	let high = high table in
-	let low = low table in
-
-	let rec helper u : sat_assignment list =
-		if u = 0 then []
-		else if u = 1 then [[]]
-		else 
-			let low_lst = helper(low(u)) in
-			let high_lst = helper(high(u)) in
-			let str = Hashtbl.find var_map u in
-			(low_lst)@(List.map (List.cons str) (high_lst))
-		in helper root *)
