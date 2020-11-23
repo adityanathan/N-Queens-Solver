@@ -127,5 +127,4 @@ let n_queen board_size =
 	Each subsequent string in the sequence should represent the 
 	next cell visited by the knight. 
 *)
-let knight board_size init_row init_col = raise BDD.Not_implemented ;;	
-
+let knight board_size init_row init_col = raise BDD.Not_implemented ;;
