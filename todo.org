@@ -1,8 +1,8 @@
 
-* TODO Handle exception Malformed_Boolean_Expression
+* DONE Handle exception Malformed_Boolean_Expression
 * DONE In functions like sat_count, you've discarded the table and kept only the root node. Ensure that there are no side effects.
 * DONE Need to map u to var_string
-* TODO Check if order of variables in any_sat matters
+* DONE Check if order of variables in any_sat matters
 # * TODO Check correctness of all_sat
 
 let exp = OprBinary(OR, Variable("x"), Variable("y"));;

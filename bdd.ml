@@ -1,39 +1,6 @@
 open Formula;;
 open Program;;
 
-(* open Format;;
-open Graph;; *)
-(* #require "ocamlgraph";; *)
-(* open Ocamlgraph;; *)
-
-(* module Node = struct
-	type t = string
-	let compare = Stdlib.compare
-	let hash = Hashtbl.hash
-	let equal = (=)
-end
-
-module Edge = struct
-	type t = string
-	let compare = Stdlib.compare
-	let equal = (=)
-	let default = ""
-end
-
-module G = Graph.Persistent.Digraph.ConcreteBidirectionalLabeled(Node)(Edge)
-
-module Dot = Graph.Graphviz.Dot(struct
-	include G (* use the graph module from above *)
-	let edge_attributes (a, e, b) = [`Label e; `Color 4711]
-	let default_edge_attributes _ = []
-	let get_subgraph _ = None
-	let vertex_attributes _ = [`Shape `Box]
-	let vertex_name v = string_of_int v
-	let default_vertex_attributes _ = []
- let graph_attributes _ = []
-end) *)
-
-
 module BDD = struct
 		type sat_assignment = string list
 		
@@ -44,14 +11,6 @@ module BDD = struct
 		exception Not_implemented
 		exception Malformed_Boolean_Expression
 		exception Any_Sat of string
-
-		(* let bddFromExpr bexpr order = raise Not_implemented ;; *)
-		
-		(* let sat_count bdd = raise Not_implemented ;; *)
-		(* let all_sat bdd = raise Not_implemented ;; *)
-		(* let any_sat bdd =  raise Not_implemented ;; *)
-		
-		let to_dot bdd = raise Not_implemented;;
 
 		(* Helpers *)
 			let hash_create x = Hashtbl.create x
@@ -207,31 +166,58 @@ module BDD = struct
 					(low_lst)@(List.map (List.cons str) (high_lst))
 				in remove_duplicates(helper root)
 
-		(* let to_dot robdd =
-			let Table(root, table, var_map) = ro in
-			let high = high table in
-			let low = low table in
-			let g = G.empty in
-
-			let rec construct u : unit =
-				if u = 0 then ()
-				else if u = 1 then ()
-				else
-					let u_low = low(u) in
-					let u_high = high(u) in
-					let v1 = G.V.create(Hashtbl.find var_map u) in
-					let v_low = G.V.create(Hashtbl.find var_map u_low) in
-					let v_high = G.V.create(Hashtbl.find var_map u_high) in
-					let g = G.add_vertex g v1 in
-					let g = G.add_vertex g v_low in
-					let g = G.add_vertex g v_high in
-					let e_low = E.create v1 "1" v_high in
-					let e_high = E.create v1 "0" v_low in
-					let g = G.add_edge_e g e_low in
-					let g = G.add_edge_e g e_high in
-					let () = construct u_low in
-					let () = construct u_high in ()
-			in
-			let file = open_out_bin "bdd.dot" in
-			let () = Dot.output_graph file g in () *)
+			let to_dot ro =
+				let Table(root, table, var_map,_) = ro in
+				let high = high table in
+				let low = low table in
+				
+				let oc = open_out "bdd2.dot" in
+				let print msg = Printf.fprintf oc "%s\n" msg in
+				let low_edge_type = "[color=Red, style=dashed, label=0, fontcolor=Blue]" in
+				let high_edge_type = "[color=Green, label=1, fontcolor=Blue]" in
+				let print_vertex (ux, x) =
+					Printf.fprintf oc "%s_%i [label=\"%s\"]\n" x ux x in
+				let print_edge (ux, x) (uy, y) edge_type =
+					if uy = 0 || uy = 1 then
+						Printf.fprintf oc "%s_%i -> %s %s\n" x ux y edge_type
+					else 
+						Printf.fprintf oc "%s_%i -> %s_%i %s\n" x ux y uy edge_type
+				in
+				let get_var_string u = 
+					if u = 0 then "0"
+					else if u = 1 then "1" 
+					else Hashtbl.find var_map u
+				in
+				let () = print "digraph G {" in
+				let print_hashmap = Hashtbl.create 123456 in
+				let member x = Hashtbl.mem print_hashmap x in
+				let add x = Hashtbl.add print_hashmap x 1 in
+			
+				let rec construct u : unit =
+					if u = 0 then 
+						if member "0" then () else let () = add "0" in print "0 [shape=box]"
+					else if u = 1 then
+						if member "1" then () else let () = add "1" in print "1 [shape=box]"
+					else
+						let v1 = Hashtbl.find var_map u in
+						let u_low = low u in
+						let v_low = get_var_string u_low in
+						let u_high = high u in
+						let v_high = get_var_string u_high in
+						let () =
+							let str = v1^"_"^(string_of_int u) in
+							if member str then () else let () = add str in print_vertex (u, v1)
+						in
+						let () = 
+							print_edge (u, v1) (u_high, v_high) high_edge_type;
+							print_edge (u, v1) (u_low, v_low) low_edge_type;
+						in
+						let () = construct (low u) in
+						let () = construct (high u) in 
+						()
+				in
+				let () = construct root in
+				let () = print "}" in
+				let () = close_out oc in
+				()
 end;;

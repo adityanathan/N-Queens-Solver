@@ -1,2 +1,18 @@
 ### Starting build.
-# Compilation successful.
+Backtrace:
+                      - Failed to build the target graph.cma
+                          - Building graph.cma:
+                              - Failed to build all of these:
+                                  - Building graph.cmo:
+                                      - Failed to build all of these:
+                                          - Building graph.ml:
+                                              - Failed to build all of these:
+                                                  - Building graph.mly
+                                                  - Building graph.mll
+                                          - Building graph.mli:
+                                              - Building graph.mly
+                                          - Building graph.mlpack
+                                          - Building graph.mli:
+                                              - Building graph.mly
+                                  - Building graph.mllib
+# Compilation unsuccessful.

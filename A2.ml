@@ -105,6 +105,7 @@ let n_queen board_size =
 	let formula = generate_formula board_size in
 	let ordering = generate_ordering board_size in
 	let new_robdd = BDD.bddFromExpr formula ordering in
+	let () = BDD.to_dot new_robdd in
 	BDD.any_sat new_robdd
 
 (* 	The type of n_queen is int -> string list, where int is the 
@@ -128,3 +129,5 @@ let n_queen board_size =
 	next cell visited by the knight. 
 *)
 let knight board_size init_row init_col = raise BDD.Not_implemented ;;
+
+let ro = n_queen 4;;
